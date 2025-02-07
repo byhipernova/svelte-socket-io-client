@@ -10,6 +10,7 @@
 			message: string;
 			event: string;
 			sender: 'client' | 'server';
+			date: Date;
 		}[]
 	>([]);
 	let message = $state('');
@@ -39,7 +40,8 @@
 					{
 						message: typeof arg === 'string' ? arg : JSON.stringify(arg),
 						event: eventName,
-						sender: 'server'
+						sender: 'server',
+						date: new Date()
 					}
 				];
 			}
@@ -50,7 +52,7 @@
 		if (socket === null) return;
 		socket.emit(messageType, message);
 		const data = typeof message === 'string' ? message : JSON.stringify(message);
-		logs = [...logs, { message: data, event: messageType, sender: 'client' }];
+		logs = [...logs, { message: data, event: messageType, sender: 'client', date: new Date() }];
 		message = '';
 	};
 </script>
@@ -124,7 +126,10 @@
 		</div>
 		<div class="mt-2 h-full overflow-y-auto border bg-gray-700 p-2 text-sm">
 			{#each logs as log}
-				<div class="mt-2 bg-white shadow-sm">
+				<div class="relative mt-2 bg-white shadow-sm">
+					<div class="absolute right-0 top-0 p-2">
+						{log.date.toLocaleTimeString()}
+					</div>
 					<div
 						class="inline-block min-w-24 px-2 py-2 text-left text-white {log.sender ===
 						'client'
@@ -133,7 +138,7 @@
 					>
 						{log.event}
 					</div>
-					<div class="inline-block px-4 py-2 text-gray-700">{log.message}</div>
+					<div class="inline-block py-2 pl-3 pr-32 text-gray-700">{log.message}</div>
 				</div>
 			{/each}
 		</div>
