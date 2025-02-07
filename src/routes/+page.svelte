@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { io, Socket } from 'socket.io-client';
+	import { Trash2 } from 'lucide-svelte';
 
-	let socket = $state<Socket>(null);
+	let socket = $state<Socket | null>(null);
 	let url = $state('');
 	let logs = $state<
 		{
@@ -46,8 +47,9 @@
 	};
 
 	const sendMessage = (messageType: string, message: string | Record<string, any>) => {
+		if (socket === null) return;
+		socket.emit(messageType, message);
 		const data = typeof message === 'string' ? message : JSON.stringify(message);
-		socket.emit(messageType, data);
 		logs = [...logs, { message: data, event: messageType, sender: 'client' }];
 		message = '';
 	};
@@ -55,7 +57,12 @@
 
 <div class="flex h-screen w-screen gap-4 bg-gray-100 p-4">
 	<div class="w-2/6 bg-white p-4 shadow">
-		<input bind:value={url} class="mb-2 w-full rounded border p-2" placeholder="Socket URL" />
+		<input
+			bind:value={url}
+			class="mb-2 w-full rounded border p-2"
+			placeholder="Socket URL"
+			disabled={isConnected}
+		/>
 		{#if isConnected}
 			<button
 				onclick={() => socket?.disconnect()}
@@ -111,7 +118,10 @@
 	</div>
 
 	<div class="w-4/6 overflow-auto bg-white p-4 shadow">
-		<h2 class="font-bold">Events</h2>
+		<div class="flex content-between justify-between gap-2">
+			<h2 class="font-bold">Events</h2>
+			<button class="" onclick={() => (logs = [])}><Trash2 size="20" /></button>
+		</div>
 		<div class="mt-2 h-full overflow-y-auto border bg-gray-700 p-2 text-sm">
 			{#each logs as log}
 				<div class="mt-2 bg-white shadow-sm">
